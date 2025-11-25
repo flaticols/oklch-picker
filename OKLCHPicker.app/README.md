@@ -77,8 +77,8 @@ Range: 0.0 to 1.0
 
 ### Requirements
 - macOS 13.0 or later
-- Xcode 15.0 or later
-- Swift 5.9 or later
+- Xcode 16.0 or later
+- Swift 6.0
 
 ### Building with Xcode
 

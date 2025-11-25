@@ -3,8 +3,8 @@
 A native macOS application for picking and converting colors using the OKLCH color space, built with Swift and SwiftUI.
 
 ![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)
-![Swift](https://img.shields.io/badge/Swift-5.9-orange)
-![Xcode](https://img.shields.io/badge/Xcode-15.0+-blue)
+![Swift](https://img.shields.io/badge/Swift-6.0-orange)
+![Xcode](https://img.shields.io/badge/Xcode-16.0+-blue)
 ![macOS](https://img.shields.io/badge/macOS-13.0+-green)
 
 ## Features
@@ -58,8 +58,8 @@ OKLCH is a perceptually uniform color space that provides several advantages ove
 
 ### Requirements
 - **macOS**: 13.0 (Ventura) or later
-- **Xcode**: 15.0 or later
-- **Swift**: 5.9 or later
+- **Xcode**: 16.0 or later
+- **Swift**: 6.0
 
 ### Building with Xcode
 
