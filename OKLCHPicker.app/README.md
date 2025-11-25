@@ -4,19 +4,38 @@ A native macOS application for picking and converting colors using the OKLCH col
 
 ## Features
 
+### Color Picking
 - **OKLCH Color Space**: Pick colors using the perceptually uniform OKLCH color space
 - **Interactive Sliders**: Adjust Lightness (L), Chroma (C), Hue (H), and Alpha independently
 - **Real-time Preview**: See your color with transparency support (checkerboard background)
-- **Multiple Export Formats**:
-  - OKLCH
-  - HEX (with alpha support)
-  - RGB/RGBA
-  - HSL/HSLA
-  - Oklab
-  - Numbers only
 - **Gamut Detection**: Visual indicator showing if color is within sRGB gamut
+
+### Visualizations
+- **2D Color Charts**: Interactive 2D color plane visualizations
+  - Lightness × Chroma (L-C) plane
+  - Chroma × Hue (C-H) plane
+  - Lightness × Hue (L-H) plane
+  - Click/drag to select colors directly from charts
+  - Optimized rendering with adaptive resolution
+- **3D Color Space**: Full 3D OKLCH color space visualization
+  - SceneKit-powered 3D rendering
+  - Interactive camera controls (rotate, zoom, pan)
+  - Real-time marker showing current color position
+  - Cylindrical coordinate system display
+  - Only shows colors within sRGB gamut
+
+### Export & Import
+- **Multiple Export Formats**:
+  - OKLCH: `oklch(0.7 0.15 180)`
+  - HEX: `#3399FF` or `#3399FF80` (with alpha)
+  - RGB/RGBA: `rgb(51, 153, 255)`
+  - HSL/HSLA: `hsl(210, 100%, 60%)`
+  - Oklab: `oklab(0.7 -0.05 -0.13)`
+  - Numbers: `0.7, 0.15, 180`
 - **Color Import**: Parse and import colors from various formats (hex, rgb, oklch)
 - **Copy to Clipboard**: One-click copying of formatted color values
+
+### Utilities
 - **Random Color Generator**: Generate random colors for inspiration
 - **macOS Color Picker Integration**: Import colors from the native macOS color picker
 
@@ -117,12 +136,28 @@ View model managing app state:
 - Clipboard operations
 
 ### ContentView.swift
-Main SwiftUI interface:
-- Color preview with transparency support
-- Interactive sliders for each component
-- Format selector and output display
+Main SwiftUI interface with tabbed layout:
+- Picker tab: Color preview, sliders, format selector
+- 2D Charts tab: Interactive color plane visualizations
+- 3D View tab: SceneKit 3D color space visualization
 - Import/export functionality
 - Random color generator
+
+### ColorChart2D.swift
+2D color chart rendering:
+- Canvas-based color plane rendering
+- Three chart types (L-C, C-H, L-H)
+- Async rendering for performance
+- Interactive color selection via drag gestures
+- Optimized with render debouncing
+
+### ColorSpace3D.swift
+3D visualization using SceneKit:
+- Point cloud representation of OKLCH color space
+- Cylindrical coordinate mapping
+- Interactive camera controls
+- Real-time color marker
+- Axis labels and guides
 
 ### main.swift
 App entry point and configuration
@@ -174,22 +209,31 @@ The app checks if colors fall within the sRGB gamut by validating that RGB compo
 
 ## Comparison with Web Version
 
-This macOS app replicates the core functionality of the web-based OKLCH picker at [oklch.com](https://oklch.com):
+This macOS app now has feature parity with the web-based OKLCH picker at [oklch.com](https://oklch.com):
 
 **Implemented:**
 - ✅ OKLCH color space support
 - ✅ Interactive sliders
+- ✅ 2D color charts (L-C, C-H, L-H planes)
+- ✅ 3D color space visualization
 - ✅ Multiple output formats
 - ✅ Color input parsing
 - ✅ Gamut detection
 - ✅ Alpha channel support
 - ✅ Random color generation
 
-**Differences:**
-- Native macOS interface instead of web UI
-- No 3D color space visualization (web version has optional Three.js 3D model)
-- No 2D color charts/maps (simplified to sliders only)
-- Native macOS color picker integration instead of web-based picker
+**Advantages over Web Version:**
+- ✨ Native macOS performance and integration
+- ✨ SceneKit 3D rendering (vs Three.js)
+- ✨ Direct macOS color picker integration
+- ✨ Offline functionality
+- ✨ No browser dependency
+
+**Technical Differences:**
+- Native Swift instead of JavaScript
+- SceneKit instead of Three.js for 3D
+- Canvas rendering instead of Web Workers for 2D charts
+- SwiftUI instead of custom web components
 
 ## License
 

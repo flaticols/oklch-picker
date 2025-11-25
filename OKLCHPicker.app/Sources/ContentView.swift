@@ -2,134 +2,167 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel = ColorPickerViewModel()
-    @State private var showingColorPanel = false
+    @State private var selectedTab = 0
 
     var body: some View {
-        VStack(spacing: 20) {
-            // Title
-            Text("OKLCH Color Picker")
-                .font(.system(size: 24, weight: .bold))
-                .padding(.top)
+        TabView(selection: $selectedTab) {
+            // Main Picker Tab
+            PickerView(viewModel: viewModel)
+                .tabItem {
+                    Label("Picker", systemImage: "paintpalette")
+                }
+                .tag(0)
 
-            // Color Preview
-            ColorPreviewView(color: Color(viewModel.currentColor))
-                .frame(height: 150)
+            // 2D Charts Tab
+            ColorChartsView(viewModel: viewModel)
+                .tabItem {
+                    Label("2D Charts", systemImage: "square.grid.2x2")
+                }
+                .tag(1)
+
+            // 3D Visualization Tab
+            ColorSpace3DView(viewModel: viewModel)
+                .tabItem {
+                    Label("3D View", systemImage: "cube")
+                }
+                .tag(2)
+        }
+        .frame(minWidth: 600, minHeight: 750)
+    }
+}
+
+// MARK: - Main Picker View
+
+struct PickerView: View {
+    @ObservedObject var viewModel: ColorPickerViewModel
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Title
+                Text("OKLCH Color Picker")
+                    .font(.system(size: 24, weight: .bold))
+                    .padding(.top)
+
+                // Color Preview
+                ColorPreviewView(color: Color(viewModel.currentColor))
+                    .frame(height: 150)
+                    .padding(.horizontal)
+
+                // Gamut Status
+                HStack {
+                    Image(systemName: viewModel.isInSRGBGamut ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .foregroundColor(Color(viewModel.gamutStatusColor))
+                    Text(viewModel.gamutStatus)
+                        .font(.caption)
+                        .foregroundColor(Color(viewModel.gamutStatusColor))
+                }
                 .padding(.horizontal)
 
-            // Gamut Status
-            HStack {
-                Image(systemName: viewModel.isInSRGBGamut ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                    .foregroundColor(Color(viewModel.gamutStatusColor))
-                Text(viewModel.gamutStatus)
-                    .font(.caption)
-                    .foregroundColor(Color(viewModel.gamutStatusColor))
-            }
-            .padding(.horizontal)
+                // Sliders
+                VStack(spacing: 15) {
+                    SliderView(
+                        label: "Lightness (L)",
+                        value: $viewModel.lightness,
+                        range: 0...1,
+                        color: .gray
+                    )
 
-            // Sliders
-            VStack(spacing: 15) {
-                SliderView(
-                    label: "Lightness (L)",
-                    value: $viewModel.lightness,
-                    range: 0...1,
-                    color: .gray
-                )
+                    SliderView(
+                        label: "Chroma (C)",
+                        value: $viewModel.chroma,
+                        range: 0...viewModel.maxChroma,
+                        color: .blue
+                    )
 
-                SliderView(
-                    label: "Chroma (C)",
-                    value: $viewModel.chroma,
-                    range: 0...viewModel.maxChroma,
-                    color: .blue
-                )
+                    HueSliderView(value: $viewModel.hue)
 
-                HueSliderView(value: $viewModel.hue)
+                    SliderView(
+                        label: "Alpha",
+                        value: $viewModel.alpha,
+                        range: 0...1,
+                        color: .purple
+                    )
+                }
+                .padding(.horizontal)
 
-                SliderView(
-                    label: "Alpha",
-                    value: $viewModel.alpha,
-                    range: 0...1,
-                    color: .purple
-                )
-            }
-            .padding(.horizontal)
+                Divider()
 
-            Divider()
+                // Format Selection and Output
+                VStack(spacing: 10) {
+                    Picker("Format", selection: $viewModel.selectedFormat) {
+                        ForEach(ColorFormat.allCases, id: \.self) { format in
+                            Text(format.description).tag(format)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: viewModel.selectedFormat) { _, newValue in
+                        viewModel.updateFormat(newValue)
+                    }
 
-            // Format Selection and Output
-            VStack(spacing: 10) {
-                Picker("Format", selection: $viewModel.selectedFormat) {
-                    ForEach(ColorFormat.allCases, id: \.self) { format in
-                        Text(format.description).tag(format)
+                    HStack {
+                        Text(viewModel.formattedColor)
+                            .font(.system(.body, design: .monospaced))
+                            .textSelection(.enabled)
+                            .padding(8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(6)
+
+                        Button(action: viewModel.copyToClipboard) {
+                            Image(systemName: "doc.on.doc")
+                        }
+                        .buttonStyle(.bordered)
+                        .help("Copy to clipboard")
                     }
                 }
-                .pickerStyle(.segmented)
-                .onChange(of: viewModel.selectedFormat) { _, newValue in
-                    viewModel.updateFormat(newValue)
-                }
+                .padding(.horizontal)
 
-                HStack {
-                    Text(viewModel.formattedColor)
-                        .font(.system(.body, design: .monospaced))
-                        .textSelection(.enabled)
-                        .padding(8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(6)
+                Divider()
 
-                    Button(action: viewModel.copyToClipboard) {
-                        Image(systemName: "doc.on.doc")
-                    }
-                    .buttonStyle(.bordered)
-                    .help("Copy to clipboard")
-                }
-            }
-            .padding(.horizontal)
+                // Input Section
+                VStack(spacing: 8) {
+                    Text("Import Color")
+                        .font(.headline)
 
-            Divider()
+                    HStack {
+                        TextField("Enter color (hex, rgb, oklch...)", text: $viewModel.inputText)
+                            .textFieldStyle(.roundedBorder)
+                            .onSubmit {
+                                viewModel.parseInput()
+                            }
 
-            // Input Section
-            VStack(spacing: 8) {
-                Text("Import Color")
-                    .font(.headline)
-
-                HStack {
-                    TextField("Enter color (hex, rgb, oklch...)", text: $viewModel.inputText)
-                        .textFieldStyle(.roundedBorder)
-                        .onSubmit {
+                        Button("Parse") {
                             viewModel.parseInput()
                         }
+                        .buttonStyle(.bordered)
+                    }
 
-                    Button("Parse") {
-                        viewModel.parseInput()
+                    if let error = viewModel.inputError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                }
+                .padding(.horizontal)
+
+                // Action Buttons
+                HStack(spacing: 15) {
+                    Button("Random Color") {
+                        viewModel.randomColor()
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button("macOS Color Picker") {
+                        NSColorPanel.shared.orderFront(nil)
+                        viewModel.importFromColorPanel()
                     }
                     .buttonStyle(.bordered)
                 }
-
-                if let error = viewModel.inputError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                }
+                .padding(.bottom)
             }
-            .padding(.horizontal)
-
-            // Action Buttons
-            HStack(spacing: 15) {
-                Button("Random Color") {
-                    viewModel.randomColor()
-                }
-                .buttonStyle(.borderedProminent)
-
-                Button("macOS Color Picker") {
-                    NSColorPanel.shared.orderFront(nil)
-                    viewModel.importFromColorPanel()
-                }
-                .buttonStyle(.bordered)
-            }
-            .padding(.bottom)
+            .padding()
         }
-        .frame(minWidth: 500, minHeight: 700)
-        .padding()
     }
 }
 
